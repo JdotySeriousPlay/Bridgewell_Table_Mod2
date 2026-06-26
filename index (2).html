@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bridgewell Table · Template</title>
+<style>
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  /* Per-module accent — overridden at runtime from TABLE.theme.accent (see boot()) */
+  --accent:#4F81BD;
+  --accent-hover:#3a6da8;
+  --accent-focus:#7ab0e0;
+  --accent-soft:rgba(79,129,189,.07);
+  --accent-soft2:rgba(79,129,189,.13);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0d1424}
+body{font-family:var(--font-sans);display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:920px;min-height:580px;font-family:var(--font-sans);background:#1a2744;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;border-radius:4px}
+.screen{display:none;width:100%;min-height:580px}
+.screen.active{display:flex}
+
+/* AVERY SCREENS */
+.avery-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.avery-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 1rem;display:block}
+.avery-photo-ph{width:90px;height:90px;border-radius:50%;background:#2d3f6e;border:3px solid var(--accent);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;color:#a0b4cc;font-size:.7rem;text-align:center}
+.avery-label{color:#a0b4cc;font-size:.75rem;letter-spacing:.06em;margin-bottom:.2rem}
+.avery-title{color:#fff;font-size:1.15rem;font-weight:600;margin-bottom:.2rem}
+.avery-sub{color:#7a90b0;font-size:.8rem;margin-bottom:1.2rem}
+.avery-quote{color:#d0dcea;font-size:.9rem;line-height:1.8;max-width:500px;margin:0 auto .9rem;font-style:italic}
+.avery-body{color:#b0c4d8;font-size:.83rem;line-height:1.75;max-width:500px;margin:0 auto 1.5rem}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:.65rem 1.8rem;font-size:.9rem;cursor:pointer;font-weight:500;transition:background .15s}
+.btn-primary:hover,.btn-primary:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+
+/* AUDIO BAR */
+.audio-wrap{display:flex;align-items:center;gap:.6rem;max-width:360px;margin:0 auto 1.1rem}
+.audio-play{width:32px;height:32px;border-radius:50%;background:var(--accent);border:2px solid transparent;cursor:pointer;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+.audio-play:hover,.audio-play:focus{background:var(--accent-hover);outline:2px solid var(--accent-focus);outline-offset:2px}
+.audio-track{flex:1;height:4px;background:rgba(255,255,255,.15);border-radius:2px;cursor:pointer;position:relative}
+.audio-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .25s linear}
+.audio-time{color:#7a90b0;font-size:.7rem;min-width:34px;text-align:right}
+.audio-error{color:#e07a7a;font-size:.72rem;margin-top:.3rem;display:none}
+.transcript-btn{background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;cursor:pointer;margin-top:.4rem}
+.transcript-btn:hover,.transcript-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.transcript-box{background:#0d1a30;border:1px solid #2d3f6e;border-radius:6px;padding:.75rem 1rem;font-size:.78rem;color:#b0c4d8;line-height:1.65;max-width:500px;margin:.5rem auto 0;text-align:left;display:none}
+
+/* HUB */
+.hub-screen{flex-direction:column;align-items:center;justify-content:center;padding:1.8rem 1rem;background:#1a2744;min-height:580px;position:relative}
+.hub-title{color:#fff;font-size:1rem;font-weight:600;margin-bottom:.25rem}
+.hub-sub{color:#7a90b0;font-size:.78rem;margin-bottom:.9rem;text-align:center}
+.prog-wrap{width:100%;max-width:500px;height:5px;background:#2d3f6e;border-radius:3px;margin-bottom:.35rem}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent);transition:width .4s}
+.prog-label{color:#7a90b0;font-size:.72rem;margin-bottom:1.4rem}
+.char-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.7rem;width:100%;max-width:640px}
+@media(max-width:600px){.char-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:380px){.char-grid{grid-template-columns:repeat(2,1fr)}}
+.char-card{border-radius:10px;padding:.85rem .5rem;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent;position:relative}
+.char-card:hover:not(.done),.char-card:focus:not(.done){transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.4);outline:none}
+.char-card:focus:not(.done){outline:2px solid #fff;outline-offset:2px}
+.char-card.done{opacity:.5;cursor:default}
+.char-avatar{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;object-fit:cover;border:2px solid rgba(255,255,255,.25);display:block}
+.char-avatar-ph{width:48px;height:48px;border-radius:50%;margin:0 auto .45rem;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:.85rem;border:2px solid rgba(255,255,255,.2)}
+.char-name{font-size:.74rem;font-weight:600;color:#fff}
+.char-role{font-size:.63rem;color:rgba(255,255,255,.5);margin-top:.1rem;line-height:1.3}
+.done-badge{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;display:flex;align-items:center;justify-content:center}
+.reset-btn{margin-top:1.5rem;background:none;border:1px solid #3a5070;color:#7a90b0;border-radius:6px;padding:.4rem 1rem;font-size:.75rem;cursor:pointer}
+.reset-btn:hover,.reset-btn:focus{border-color:var(--accent);color:#a0c0e0;outline:2px solid var(--accent);outline-offset:2px}
+.debrief-btn{position:absolute;right:1.1rem;bottom:1.1rem;background:#2d3f6e;color:#fff;border:1px solid #43578a;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;font-weight:500;cursor:pointer}
+.debrief-btn:hover{background:#37487a}
+
+/* SPLIT SCREENS */
+.split-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.split-screen{flex-direction:column}}
+.s-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:280px}
+@media(max-width:700px){.s-left{flex:0 0 220px}}
+.s-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.s-left-color{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem}
+.char-portrait{width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem;display:block}
+.char-portrait-ph{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.4rem;border:3px solid rgba(255,255,255,.3);margin-bottom:1rem}
+.char-name-large{color:#fff;font-size:1.1rem;font-weight:600;margin-bottom:.2rem}
+.char-role-large{color:rgba(255,255,255,.6);font-size:.78rem}
+
+.bubble{position:absolute;top:.9rem;left:.9rem;right:.9rem;background:rgba(15,25,50,.88);border-left:3px solid var(--accent);color:#d0dcea;border-radius:8px;padding:.6rem .8rem;font-size:.76rem;line-height:1.5;font-style:italic;max-width:240px}
+.family-flag{position:absolute;bottom:.8rem;left:.8rem;background:rgba(150,70,10,.9);border-radius:7px;padding:.5rem .7rem;font-size:.71rem;color:#fff;line-height:1.4;max-width:240px}
+.family-flag strong{display:block;font-size:.65rem;letter-spacing:.04em;margin-bottom:.12rem;opacity:.85}
+
+.s-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.scene-ctx{font-size:.79rem;color:#444;line-height:1.6;margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid #ced3dc}
+.q-label{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.3rem;text-transform:uppercase}
+.q-text{font-size:.86rem;font-weight:600;color:#1a2744;line-height:1.5;margin-bottom:.85rem}
+.choices{display:flex;flex-direction:column;gap:.55rem}
+.choice-btn{display:flex;align-items:flex-start;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;text-align:left;padding:.35rem .4rem;transition:border-color .15s}
+.choice-btn:hover,.choice-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.choice-btn.selected{border-color:var(--accent);background:var(--accent-soft2)}
+.cbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;margin-top:1px;flex-shrink:0}
+.choice-btn:hover .cbullet,.choice-btn:focus-visible .cbullet{background:var(--accent)}
+.choice-btn.selected .cbullet{background:var(--accent);box-shadow:inset 0 0 0 3px #fff}
+.ctext{font-size:.8rem;color:#222;line-height:1.5}
+
+/* CHAR INTRO SCREEN */
+.char-intro-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.char-intro-screen{flex-direction:column}}
+.ci-audio-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.92);border-top:2px solid;padding:.6rem .9rem;display:flex;align-items:center;gap:.6rem}
+.ci-play{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-play:hover,.ci-play:focus{opacity:.85;outline:2px solid #fff;outline-offset:2px}
+.ci-track{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer}
+.ci-fill{height:100%;border-radius:2px;width:0%}
+.ci-time{color:rgba(255,255,255,.45);font-size:.66rem;min-width:28px}
+
+/* FEEDBACK */
+.fb-screen{flex-direction:row;min-height:580px}
+@media(max-width:700px){.fb-screen{flex-direction:column}}
+.fb-left{flex:0 0 48%;position:relative;overflow:hidden;background:#0d1520;min-height:240px}
+@media(max-width:700px){.fb-left{flex:0 0 200px}}
+.fb-left-img{width:100%;height:100%;object-fit:cover;display:block}
+.fb-left-color{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.consequence-banner{position:absolute;bottom:0;left:0;right:0;background:rgba(120,20,20,.92);padding:.7rem .9rem;font-size:.74rem;color:#fff;line-height:1.5}
+.consequence-banner strong{display:block;font-size:.64rem;letter-spacing:.04em;margin-bottom:.12rem}
+.avery-interrupt{position:absolute;bottom:0;left:0;right:0;background:rgba(15,25,50,.94);border-top:2px solid var(--accent);padding:.7rem .9rem;font-size:.74rem;color:#d0dcea;line-height:1.5;font-style:italic}
+.avery-interrupt strong{display:block;font-size:.64rem;color:var(--accent);letter-spacing:.04em;margin-bottom:.12rem;font-style:normal}
+.fb-right{flex:1;background:#edf0f4;padding:1.2rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;overflow-y:auto}
+.fb-chosen{font-size:.8rem;color:#333;font-weight:500;margin-bottom:.6rem;line-height:1.5;padding:.5rem .7rem;background:#dde2eb;border-radius:6px;border-left:3px solid #9ab0cc}
+.fb-chosen.correct{background:#e7f2da;border-left:4px solid #2f7d1f;color:#234016}
+.fb-chosen.wrong{background:#f7dede;border-left:4px solid #c0392b;color:#5a1f18}
+.fb-chosen.wrong::before{content:'\2717  INCORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#c0392b;margin-bottom:.25rem}
+.fb-chosen.correct::before{content:'\2713  CORRECT';display:block;font-size:.6rem;font-weight:700;letter-spacing:.06em;color:#2f7d1f;margin-bottom:.25rem}
+.fb-lbl{font-size:.68rem;font-weight:600;color:#888;letter-spacing:.05em;margin-bottom:.22rem;text-transform:uppercase}
+.fb-text{font-size:.8rem;color:#333;line-height:1.6;margin-bottom:.7rem}
+.fb-takeaway{font-size:.8rem;font-weight:600;font-style:italic;color:#1D3D0F;line-height:1.6;margin-bottom:.9rem;padding:.5rem .7rem;border-left:3px solid #1D3D0F;background:#eaf3de;border-radius:0 6px 6px 0}
+.fb-actions{display:flex;flex-direction:column;gap:.45rem}
+.fb-btn{display:flex;align-items:center;gap:.6rem;background:none;border:2px solid transparent;border-radius:6px;cursor:pointer;padding:.25rem .35rem;transition:border-color .15s}
+.fb-btn:hover,.fb-btn:focus-visible{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+.fbullet{width:24px;height:24px;min-width:24px;border-radius:50%;background:#9ab0cc;transition:background .15s;flex-shrink:0}
+.fb-btn:hover .fbullet,.fb-btn:focus-visible .fbullet{background:var(--accent)}
+.fb-btn-text{font-size:.8rem;color:#222}
+
+/* LIVE REGION */
+#live-region{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+/* EXIT */
+.exit-screen{flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;background:#1a2744;min-height:580px}
+.exit-ring{width:68px;height:68px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--accent);font-size:1.5rem}
+</style>
+</head>
+<body>
+
+<div id="app" role="main">
+<div aria-live="polite" aria-atomic="true" id="live-region"></div>
+
+<!-- INTRO (text filled by boot() from TABLE) -->
+<div class="screen avery-screen active" id="screen-intro" role="region" aria-label="Course introduction">
+  <img class="avery-photo" id="intro-avery-photo" src="assets/avery.png" alt="Dr. Patricia Avery" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+  <div class="avery-photo-ph" style="display:none">DA</div>
+  <div class="avery-label" id="intro-avery-label"></div>
+  <div class="avery-title" id="intro-title"></div>
+  <div class="avery-sub" id="intro-sub"></div>
+  <div class="audio-wrap" id="aw-intro">
+    <button class="audio-play" id="btn-avery_intro" onclick="toggleAudio('avery_intro')" aria-label="Play Dr. Avery introduction">▶</button>
+    <div class="audio-track" role="progressbar" aria-label="Audio progress" onclick="seekAudio(event,'avery_intro')"><div class="audio-fill" id="fill-avery_intro"></div></div>
+    <span class="audio-time" id="time-avery_intro" aria-live="off">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_intro">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-intro')" aria-expanded="false" aria-controls="tr-intro">Show transcript</button>
+  <div class="transcript-box" id="tr-intro" role="note"></div>
+  <div class="avery-quote" id="intro-quote" style="margin-top:.9rem"></div>
+  <div class="avery-body" id="intro-body"></div>
+  <button class="btn-primary" id="intro-enter" onclick="showHub()" style="margin-top:.5rem">Enter the room →</button>
+</div>
+
+<!-- HUB (title/sub + cards filled by boot()) -->
+<div class="screen hub-screen" id="screen-hub" role="region" aria-label="Character selection">
+  <div class="hub-title" id="hub-title"></div>
+  <div class="hub-sub" id="hub-sub"></div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog"></div></div>
+  <div class="prog-label" id="prog-label" aria-live="polite">0 of 5 perspectives completed</div>
+  <div class="char-grid" id="char-grid" role="list"></div>
+  <button class="reset-btn" onclick="confirmReset()" aria-label="Reset simulation and start over">↺ Start over</button>
+  <button class="debrief-btn" onclick="show('screen-exit')" aria-label="Skip to Dr. Avery's debrief and finish">Dr. Avery's debrief →</button>
+</div>
+
+<!-- CHAR INTRO -->
+<div class="screen char-intro-screen" id="screen-char-intro" role="region" aria-label="Character introduction">
+  <div class="s-left" id="ci-left">
+    <div class="s-left-color" id="ci-color-panel">
+      <img class="char-portrait" id="ci-portrait" alt="" onerror="this.style.display='none';document.getElementById('ci-portrait-ph').style.display='flex'">
+      <div class="char-portrait-ph" id="ci-portrait-ph" style="display:none"></div>
+      <div class="char-name-large" id="ci-name-large"></div>
+      <div class="char-role-large" id="ci-role-large"></div>
+    </div>
+    <div class="ci-audio-bar" id="ci-bar">
+      <button class="ci-play" id="ci-play-btn" onclick="toggleAudio('char_intro')" aria-label="Play character introduction audio">▶</button>
+      <div class="ci-track" onclick="seekAudio(event,'char_intro')" aria-label="Audio seek bar"><div class="ci-fill" id="fill-char_intro"></div></div>
+      <span class="ci-time" id="time-char_intro">0:00</span>
+    </div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="q-label" id="ci-role-label"></div>
+      <div class="q-text" id="ci-intro-text" style="font-size:.95rem;line-height:1.75;color:#1a2744;font-weight:400"></div>
+      <div class="audio-error" id="err-char_intro" style="color:#c05050;font-size:.74rem;margin-top:.5rem">Audio unavailable</div>
+      <button class="transcript-btn" id="ci-transcript-btn" onclick="toggleTranscript('tr-char')" aria-expanded="false" aria-controls="tr-char" style="margin-top:.6rem">Show transcript</button>
+      <div class="transcript-box" id="tr-char" role="note" style="margin-top:.5rem"></div>
+    </div>
+    <div style="margin-top:1.2rem">
+      <button class="btn-primary" style="background:#1a2744;font-size:.83rem" onclick="goToQ1()">Begin scenario →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q1 -->
+<div class="screen split-screen" id="screen-q1" role="region" aria-label="Question 1">
+  <div class="s-left">
+    <img class="s-left-img" id="q1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q1-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q1-color-panel" style="display:none">
+      <img class="char-portrait" id="q1-portrait" alt="">
+      <div class="char-name-large" id="q1-char-name"></div>
+    </div>
+    <div class="bubble" id="q1-bubble"></div>
+    <div class="family-flag" id="q1-family" style="display:none"><strong class="family-tag"></strong><span id="q1-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q1-ctx"></div>
+      <div class="q-label">Question 1 of 2</div>
+      <div class="q-text" id="q1-text"></div>
+      <div class="choices" id="q1-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB1 -->
+<div class="screen fb-screen" id="screen-fb1" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb1-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb1-color').style.display='flex'">
+    <video class="fb-left-img" id="fb1-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb1-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb1-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb1-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb1-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb1-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb1-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb1-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb1-text"></div>
+      <div class="fb-takeaway" id="fb1-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb1-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- Q2 -->
+<div class="screen split-screen" id="screen-q2" role="region" aria-label="Question 2">
+  <div class="s-left">
+    <img class="s-left-img" id="q2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('q2-color-panel').style.display='flex'">
+    <video class="s-left-img" id="q2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="s-left-color" id="q2-color-panel" style="display:none">
+      <img class="char-portrait" id="q2-portrait" alt="">
+      <div class="char-name-large" id="q2-char-name"></div>
+    </div>
+    <div class="bubble" id="q2-bubble"></div>
+    <div class="family-flag" id="q2-family" style="display:none"><strong class="family-tag"></strong><span id="q2-family-text"></span></div>
+  </div>
+  <div class="s-right">
+    <div>
+      <div class="scene-ctx" id="q2-ctx"></div>
+      <div class="q-label">Question 2 of 2</div>
+      <div class="q-text" id="q2-text"></div>
+      <div class="choices" id="q2-choices" role="group" aria-label="Answer choices"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FB2 -->
+<div class="screen fb-screen" id="screen-fb2" role="region" aria-label="Feedback">
+  <div class="fb-left">
+    <img class="fb-left-img" id="fb2-scene-img" alt="" onerror="this.style.display='none';document.getElementById('fb2-color').style.display='flex'">
+    <video class="fb-left-img" id="fb2-scene-vid" style="display:none" muted loop playsinline aria-hidden="true"></video>
+    <div class="fb-left-color" id="fb2-color" style="display:none;background:#1a2744">
+      <img class="char-portrait" id="fb2-portrait" alt="">
+    </div>
+    <div class="consequence-banner" id="fb2-consequence" style="display:none" role="alert"><strong class="consequence-tag"></strong><span id="fb2-consequence-text"></span></div>
+    <div class="avery-interrupt" id="fb2-avery" style="display:none" role="note"><strong>DR. AVERY</strong><span id="fb2-avery-text"></span></div>
+  </div>
+  <div class="fb-right">
+    <div>
+      <div class="fb-chosen" id="fb2-chosen"></div>
+      <div class="fb-lbl">Feedback</div>
+      <div class="fb-text" id="fb2-text"></div>
+      <div class="fb-takeaway" id="fb2-takeaway" style="display:none" role="note"></div>
+    </div>
+    <div class="fb-actions" id="fb2-actions" role="group" aria-label="Next steps"></div>
+  </div>
+</div>
+
+<!-- EXIT / DEBRIEF (filled by boot()) -->
+<div class="screen exit-screen" id="screen-exit" role="region" aria-label="Simulation complete">
+  <div class="exit-ring" aria-hidden="true">✓</div>
+  <div class="avery-label" id="exit-avery-label" style="color:#7a90b0;margin-bottom:.3rem">DR. PATRICIA AVERY</div>
+  <div class="avery-title" id="exit-title" style="color:#fff;margin-bottom:.3rem"></div>
+  <div class="avery-sub" id="exit-sub" style="margin-bottom:.9rem"></div>
+  <div class="audio-wrap">
+    <button class="audio-play" id="btn-avery_exit" onclick="toggleAudio('avery_exit')" aria-label="Play Dr. Avery closing remarks">▶</button>
+    <div class="audio-track" onclick="seekAudio(event,'avery_exit')" aria-label="Audio progress"><div class="audio-fill" id="fill-avery_exit"></div></div>
+    <span class="audio-time" id="time-avery_exit">0:00</span>
+  </div>
+  <div class="audio-error" id="err-avery_exit">Audio unavailable — read transcript below</div>
+  <button class="transcript-btn" onclick="toggleTranscript('tr-exit')" aria-expanded="false" aria-controls="tr-exit">Show transcript</button>
+  <div class="transcript-box" id="tr-exit" role="note"></div>
+  <div class="avery-review" style="max-width:580px;margin:1.4rem auto 0;text-align:left">
+    <div id="exit-lessons-intro" style="color:#7a90b0;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.7rem;text-align:center"></div>
+    <div id="exit-lessons" style="display:flex;flex-direction:column;gap:.6rem"></div>
+  </div>
+  <div class="avery-body" id="exit-body" style="margin-top:1.3rem"></div>
+  <div style="max-width:520px;margin:1.5rem auto 0;display:flex;align-items:center;gap:.6rem;justify-content:center;padding:.7rem 1rem;background:rgba(79,168,92,.12);border:1px solid rgba(79,168,92,.4);border-radius:10px">
+    <span aria-hidden="true" style="color:#6fc47a;font-size:1rem;flex-shrink:0">✓</span>
+    <span style="color:#cdeacf;font-size:.82rem;line-height:1.5"><strong style="color:#fff" id="exit-completion"></strong> Continue in your lesson when you're ready.</span>
+  </div>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn-primary" onclick="confirmReset()">↺ Start over</button>
+    <button class="btn-primary" style="background:#2d3f6e" onclick="showHub()">Review hub</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ============================================================================
+   ███  EDIT EVERYTHING IN THIS "TABLE" OBJECT TO MAKE A NEW BRIDGEWELL TABLE ███
+   ----------------------------------------------------------------------------
+   The engine below reads ONLY from TABLE. To build another module:
+     1. Copy this whole file.
+     2. Edit the fields in TABLE (title, accent, intro, the 5 team members, debrief).
+     3. Drop the matching images/audio into  assets/  (see TEMPLATE_GUIDE.md).
+     4. Deploy to its own GitHub repo + Pages, embed the URL in Rise.
+   The Bridgewell team (names, colors, portraits) and the Rivera-Washington
+   family are CANON — keep them consistent across every table.
+   ========================================================================== */
+const TABLE = {
+  "meta": {
+    "title": "Where the Pathway Breaks",
+    "moduleLabel": "Module 2 · ALH 4105 · MAP-IT: Mobilize",
+    "hubTitle": "The Bridgewell Table",
+    "hubSub": "Walk each stage of the prevention pathway — find the break, choose the partner",
+    "completion": "You've completed Module 2 — Partners & Pathways.",
+    "familyTag": "RIVERA-WASHINGTON FAMILY"
+  },
+  "theme": {
+    "accent": "#1F6E78"
+  },
+  "avery": {
+    "label": "DR. PATRICIA AVERY · BRIDGEWELL COMMUNITY HEALTH",
+    "portrait": "assets/avery.png",
+    "intro": {
+      "quote": "\"A good idea doesn't move anyone. The right partner, at the right break in the pathway, does.\"",
+      "bodyHtml": "Last module, you picked the lens that explained <em>why</em> each person behaves the way they do. This module, we move from understanding to <strong>action</strong> — the second step of Mobilize.<br><br>Here's the hard truth of health promotion: knowing what someone needs changes nothing until someone with <strong>authority, trust, access, or resources</strong> actually moves them through the system. Every population travels a prevention pathway — they get <strong>identified</strong>, <strong>screened</strong>, <strong>referred</strong>, and <strong>followed up</strong>. And somewhere along that path, for the people who need it most, it <strong>breaks</strong>.<br><br>Your job is to find the break — and name the partner who can close it. Not a generic \"community organization.\" A specific partner with a specific role that reduces a specific barrier. The Hub will show you the barrier profile and who's being left behind; your partners have to answer it.<br><br>My team has taken the Rivera-Washington family and split the pathway between them. Walk each stage. Find the break. Choose the partner.",
+      "transcript": "Last module, you picked the lens that explained why each person behaves the way they do. This module, we move from understanding to action — the second step of Mobilize. Here's the hard truth of health promotion: knowing what someone needs changes nothing until someone with authority, trust, access, or resources actually moves them through the system. Every population travels a prevention pathway — they get identified, screened, referred, and followed up. And somewhere along that path, for the people who need it most, it breaks. Your job is to find the break — and name the partner who can close it. Not a generic community organization. A specific partner with a specific role that reduces a specific barrier. The Hub will show you the barrier profile and who's being left behind; your partners have to answer it. My team has taken the Rivera-Washington family and split the pathway between them. Walk each stage. Find the break. Choose the partner.",
+      "audio": "assets/audio/avery_intro_m2.mp3"
+    },
+    "debrief": {
+      "title": "Dr. Avery's Debrief",
+      "sub": "Module 2 · Partners & Pathways",
+      "transcript": "Five stages, one pathway, and a partner chosen for each break — never a generic one. Notice the pattern: we named the barrier first, then found the partner who controls it, then closed the loop with a real handoff. That's mobilization. Now you do it for your own population. Go to the Bridgewell Simulation Hub, toggle on the barriers that apply to them, and run the synthesis. Read the Equity Status and Tradeoff outputs — they tell you who's being left out and where a narrow fix backfires. Then write your Mobilize Section Draft: define your population and scope, justify the issue with data, choose three to five partners by barrier — each with a role, what they control, and the barrier they reduce — and map your pathway from identification to follow-up, naming the one break point and the partner who closes it. Do this well and Module 3 is already half-built: risk stratification and screening logic stand on the population, issue, and pathway you define right here.",
+      "lessonsIntro": "One family, one pathway, five places it could break — and the partner for each",
+      "bodyHtml": "Five stages, one pathway, and a partner chosen for each break — never a generic one. Notice the pattern: we named the <strong>barrier</strong> first, then found the partner who <strong>controls</strong> it, then closed the loop with a real <strong>handoff</strong>. That's mobilization.<br><br>Now you do it for your own population. Go to the <strong>Bridgewell Simulation Hub</strong>, toggle on the barriers that apply, and run the synthesis. Read the <strong>Equity Status</strong> and <strong>Tradeoff</strong> outputs — they tell you who's being left out and where a narrow fix backfires. Then write your <strong>Mobilize Section Draft</strong>: define your population and scope, justify the issue with data, choose <strong>3–5 partners by barrier</strong> (role · what they control · barrier reduced), and map your pathway from identification to follow-up, naming the one break point and the partner who closes it.<br><br>Do this well and Module 3 is already half-built: risk stratification and screening logic stand on the population, issue, and pathway you define right here.",
+      "audio": "assets/audio/avery_exit_m2.mp3"
+    }
+  },
+  "team": [
+    {
+      "key": "marcus",
+      "name": "Marcus",
+      "initials": "MC",
+      "creds": "CMA",
+      "color": "#4F81BD",
+      "bgDark": "#1e2e4a",
+      "phColor": "#fff",
+      "role": "Carmen · Identification",
+      "ariaName": "Marcus, CMA",
+      "portrait": "assets/marcus.png",
+      "audio": "assets/audio/marcus_m2.mp3",
+      "lesson": "Identification — a pathway can't help who it never finds. Distrust + language needed a promotora, not another clinic door.",
+      "intro": {
+        "role": "Certified Medical Assistant",
+        "text": "Carmen only enters the system when something breaks — a crisis, urgent care, then gone. Between those visits, nobody's watching her blood pressure, nobody's tracking her sugar. The pathway can't help a person it never finds. The question isn't her care — it's how we identify her before the next crisis, in a way she'll actually trust.",
+        "transcript": "Carmen only enters the system when something breaks — a crisis, urgent care, then gone. Between those visits, nobody's watching her blood pressure, nobody's tracking her sugar. The pathway can't help a person it never finds. The question isn't her care — it's how we identify her before the next crisis, in a way she'll actually trust."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/carmen.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/marcus_q2.jpeg",
+          "pos": "50% 28%"
+        }
+      },
+      "q1": {
+        "bubble": "\"The pathway can't help a person it never finds.\"",
+        "family": true,
+        "familyText": "Carmen Rivera, 72 · uncontrolled hypertension + diabetes · no primary care provider, Spanish-speaking, distrusts the system.",
+        "ctx": "Hub barrier profile — ON: institutional distrust, language access, no usual source of care. Equity Status flags older Riverside Flats residents as missed by clinic-based identification.",
+        "q": "Which partner can actually close the identification gap for Carmen?",
+        "choices": [
+          {
+            "text": "A community health worker / promotora program at the neighborhood FQHC — controls trusted, Spanish-language outreach into Riverside Flats; reduces the distrust + language barriers clinic-based identification can't.",
+            "correct": true,
+            "feedback": "Right. A promotora has what the barrier profile demands — trust and reach into the community itself. She identifies at-risk residents where they live, in their language, which is the only thing that overcomes distrust. A partner defined by role + what they control + the barrier they reduce.",
+            "takeaway": "Match the partner to the barrier. Distrust + language → a trusted, in-language community partner, not another clinic door."
+          },
+          {
+            "text": "The urgent care center — she already goes there, so lean on it to catch her.",
+            "correct": false,
+            "feedback": "Urgent care is episodic by design — it treats the crisis and discharges. It does no proactive identification or follow-up, so it can't close this gap. The break is between visits."
+          },
+          {
+            "text": "A county-wide mailer and billboard campaign about blood pressure.",
+            "correct": false,
+            "feedback": "Mass media has reach but no trust and no language tailoring — it won't move a distrustful, primarily Spanish-speaking 72-year-old. That's a generic partner, exactly what the assignment warns against."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Identification only counts if it connects her to care.\"",
+        "family": true,
+        "familyText": "Carmen speaks Spanish as her primary language and distrusts the system after past negative experiences.",
+        "ctx": "You've named the promotora program. Identification only counts if it connects Carmen to ongoing care. How does the handoff actually work?",
+        "q": "Which move turns identification into a real clinical–community link?",
+        "choices": [
+          {
+            "text": "The promotora runs a community BP screening, then warm-hands Carmen to the FQHC — booking the appointment with her, in the room, with an interpreter confirmed.",
+            "correct": true,
+            "feedback": "Yes. A warm handoff with the appointment made and language access arranged converts identification into enrollment. The community side and the clinical side are now linked, with no gap for Carmen to fall through.",
+            "takeaway": "A clinical–community link is a closed loop — the community partner doesn't just refer, they connect and confirm."
+          },
+          {
+            "text": "Hand Carmen a flyer with the clinic's phone number.",
+            "correct": false,
+            "consequence": "Carmen takes the flyer, never calls, and reappears at urgent care months later. Identification without a warm link is a dead end.",
+            "feedback": "A flyer is a cold handoff. It leaves the distrust and language barriers fully intact and puts all the work on Carmen — the pathway breaks again right here."
+          },
+          {
+            "text": "Tell Carmen to \"ask her family to set her up with a doctor.\"",
+            "correct": false,
+            "feedback": "Offloading the handoff to family isn't a pathway — it's a hope. The partner you named has to own the connection."
+          }
+        ]
+      }
+    },
+    {
+      "key": "jordan",
+      "name": "Jordan",
+      "initials": "JK",
+      "creds": "Nutritionist",
+      "color": "#4FA85C",
+      "bgDark": "#18291a",
+      "phColor": "#fff",
+      "role": "DeShawn · Screening",
+      "ariaName": "Jordan, Nutritionist",
+      "portrait": "assets/jordan.png",
+      "audio": "assets/audio/jordan_m2.mp3",
+      "lesson": "Screening — time + cost barriers meant screening had to come to DeShawn at work, then route to an affordable next step.",
+      "intro": {
+        "role": "Nutritionist",
+        "text": "DeShawn is pre-diabetic and doesn't know how close he is, because he's never been screened. Two jobs, sixty-hour weeks, no insurance. Telling him to \"go get an A1C\" is telling him to lose a shift he can't afford to lose. If screening doesn't come to him, it doesn't happen.",
+        "transcript": "DeShawn is pre-diabetic and doesn't know how close he is, because he's never been screened. Two jobs, sixty-hour weeks, no insurance. Telling him to go get an A1C is telling him to lose a shift he can't afford to lose. If screening doesn't come to him, it doesn't happen."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/deshawn.jpeg",
+          "pos": "62% 20%"
+        },
+        "q2": {
+          "img": "assets/scenes/jordan_q2.jpeg",
+          "pos": "62% 32%"
+        }
+      },
+      "q1": {
+        "bubble": "\"If screening doesn't come to him, it doesn't happen.\"",
+        "family": true,
+        "familyText": "DeShawn Washington, 48 · pre-diabetic · works 60+ hrs/week across two jobs, no insurance, reluctant healthcare user.",
+        "ctx": "Hub barrier profile — ON: time poverty, financial/insurance access. The Tradeoff output warns clinic-only screening widens the gap for working, uninsured adults.",
+        "q": "Which partner can deliver screening to DeShawn given his barriers?",
+        "choices": [
+          {
+            "text": "His employer / workplace wellness program paired with a mobile screening unit — controls access to his time and location; an on-shift, no-cost A1C removes both the time and money barriers.",
+            "correct": true,
+            "feedback": "Right. The employer controls the one thing DeShawn can't spare — his time — and a mobile unit removes the cost. Screening delivered at work, on the clock, is the only version that actually reaches him.",
+            "takeaway": "When the barrier is time + cost, the partner who controls the setting (the employer) beats the partner with the best clinic."
+          },
+          {
+            "text": "The county hospital's diabetes clinic — best screening and care in the area.",
+            "correct": false,
+            "feedback": "Quality isn't the gap. The clinic still requires DeShawn to take unpaid time off and face a bill — the exact barriers the Hub flagged. Great care he can't reach changes nothing."
+          },
+          {
+            "text": "A weekday health-fair booth across town.",
+            "correct": false,
+            "feedback": "Wrong reach — he's working during it and it's not where he is. A booth the priority population can't attend is a generic partner, not a matched one."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"A screen that goes nowhere is its own break point.\"",
+        "family": true,
+        "familyText": "DeShawn works 60+ hours a week and engages only briefly — the next step has to be quick and affordable.",
+        "ctx": "The on-site screening flags DeShawn's A1C in the pre-diabetic range. A screen that goes nowhere is a break point. How do you build the next step in?",
+        "q": "Which move keeps the pathway from dead-ending at the screening?",
+        "choices": [
+          {
+            "text": "Results are routed to a partnering FQHC with a sliding-scale follow-up already arranged, and DeShawn leaves with a scheduled, low-cost appointment that fits his shift.",
+            "correct": true,
+            "feedback": "Yes. The screening is wired to an affordable next step before he walks away — a closed loop. The pathway moves from screening to assessment without depending on him to navigate cost and scheduling alone.",
+            "takeaway": "Screening must hand off to a next step the person can actually afford and reach — or it just produces a number nobody acts on."
+          },
+          {
+            "text": "Give DeShawn his result and a printout that says \"follow up with a doctor.\"",
+            "correct": false,
+            "consequence": "DeShawn pockets the result, can't afford a clinic, and his pre-diabetes progresses unmonitored. The screen identified risk and then abandoned it.",
+            "feedback": "That hands the same barriers right back to him. A flagged result with no affordable, scheduled next step is a dead-end screen."
+          },
+          {
+            "text": "Tell him to come back to next year's health fair to re-check.",
+            "correct": false,
+            "feedback": "A year of no action on a reversible condition isn't follow-up. The handoff has to happen now, into a real next step."
+          }
+        ]
+      }
+    },
+    {
+      "key": "nova",
+      "name": "Nova",
+      "initials": "NP",
+      "creds": "RDH",
+      "color": "#CF95C7",
+      "bgDark": "#261a26",
+      "phColor": "#3a1a38",
+      "role": "Lucia · Referral",
+      "ariaName": "Nova, Dental Hygienist",
+      "portrait": "assets/nova.png",
+      "audio": "assets/audio/nova_m2.mp3",
+      "lesson": "Referral — it converts only when the partner controls the barriers that cause no-shows: cost, anxiety, caregiving.",
+      "intro": {
+        "role": "Dental Hygienist",
+        "text": "I can refer Lucia to a dentist all day — it won't convert. Dental isn't covered, she's terrified of the chair, and she's caring for her mother Carmen with no time of her own. A referral that ignores cost, fear, and caregiving is a referral that becomes a no-show. The pathway breaks at the handoff.",
+        "transcript": "I can refer Lucia to a dentist all day — it won't convert. Dental isn't covered, she's terrified of the chair, and she's caring for her mother Carmen with no time of her own. A referral that ignores cost, fear, and caregiving is a referral that becomes a no-show. The pathway breaks at the handoff."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/lucia.jpeg",
+          "pos": "50% 22%"
+        },
+        "q2": {
+          "img": "assets/scenes/nova_q2.jpeg",
+          "pos": "50% 20%"
+        }
+      },
+      "q1": {
+        "bubble": "\"A referral that ignores her barriers becomes a no-show.\"",
+        "family": true,
+        "familyText": "Lucia Rivera-Chen, 45 · worsening gum disease + dental anxiety · primary caregiver for Carmen, part-time work, defers her own care.",
+        "ctx": "Hub barrier profile — ON: financial access (dental rarely covered), caregiving time burden, low self-efficacy/anxiety. Equity Status flags caregivers as routinely deferring their own care.",
+        "q": "Which partner makes a dental referral actually convert for Lucia?",
+        "choices": [
+          {
+            "text": "A dental school clinic or FQHC dental program with sliding-scale fees and a care coordinator — controls affordable service capacity and can schedule around her caregiving.",
+            "correct": true,
+            "feedback": "Right. This partner reduces the two barriers that kill the referral — cost and inflexible scheduling — and a coordinator can manage her anxiety and caregiving constraints. The referral now has somewhere real to land.",
+            "takeaway": "A referral partner has to control the barriers that cause no-shows — here, cost and scheduling — not just \"accept patients.\""
+          },
+          {
+            "text": "A private dental office that is accepting new patients.",
+            "correct": false,
+            "feedback": "Accepting patients isn't the same as removing barriers. Full-fee dental leaves the cost barrier intact, so the referral still won't convert."
+          },
+          {
+            "text": "Hand Lucia a printed list of dentists in the area.",
+            "correct": false,
+            "feedback": "A list is a cold referral with every barrier untouched — the definition of a handoff that breaks. And it's generic, not matched to her barrier profile."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Make the referral so she actually gets through the door.\"",
+        "family": true,
+        "familyText": "Lucia carries the \"strong one\" role and rarely makes time for her own care — the partner has to work around that.",
+        "ctx": "You've named the sliding-scale dental partner. Now structure the referral so Lucia actually gets through the door.",
+        "q": "Which is a true warm, closed-loop referral for Lucia?",
+        "choices": [
+          {
+            "text": "Nova's office books the sliding-scale appointment with Lucia present, flags her dental anxiety to the receiving team, and helps arrange respite timing for Carmen's care — then confirms she was seen.",
+            "correct": true,
+            "feedback": "Yes. The appointment is made, the anxiety is communicated ahead, the caregiving conflict is solved, and the loop is closed by confirming attendance. Every barrier that causes a no-show has been handled by the partner, not dumped on Lucia.",
+            "takeaway": "Closed-loop referral = appointment made + barriers pre-solved + attendance confirmed."
+          },
+          {
+            "text": "Fax the referral to the clinic and let them contact Lucia.",
+            "correct": false,
+            "consequence": "The clinic leaves a voicemail, Lucia is mid-caregiving and never calls back, and her gum disease worsens. The referral broke at the handoff.",
+            "feedback": "A faxed referral with no follow-through is exactly where most referrals die. Nothing about her anxiety, cost, or caregiving has been addressed."
+          },
+          {
+            "text": "Tell Lucia to call \"when things settle down\" with her mother.",
+            "correct": false,
+            "feedback": "For a caregiver, things never settle down — that's the barrier. The partner has to work around it, not wait for it to disappear."
+          }
+        ]
+      }
+    },
+    {
+      "key": "elena",
+      "name": "Elena",
+      "initials": "EP",
+      "creds": "RRT",
+      "color": "#B3A2C7",
+      "bgDark": "#1e1a26",
+      "phColor": "#2a2038",
+      "role": "Marco · Follow-up",
+      "ariaName": "Elena, Respiratory Therapist",
+      "portrait": "assets/elena.png",
+      "audio": "assets/audio/elena_m2.mp3",
+      "lesson": "Follow-up — for a teen, daily access beats specialty care: the school nurse, linked to the clinical plan.",
+      "intro": {
+        "role": "Respiratory Therapist",
+        "text": "Marco landed in the ER with an asthma flare — vaping isn't helping. They stabilized him and sent him home with a paper plan. Then what? He's in school seven hours a day, his parents work, and a clinic recheck in three months won't touch what happens in between. Follow-up has to live where Marco actually is.",
+        "transcript": "Marco landed in the ER with an asthma flare — vaping isn't helping. They stabilized him and sent him home with a paper plan. Then what? He's in school seven hours a day, his parents work, and a clinic recheck in three months won't touch what happens in between. Follow-up has to live where Marco actually is."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/marco.jpeg",
+          "pos": "40% 18%"
+        },
+        "q2": {
+          "img": "assets/scenes/elena_q2.jpeg",
+          "pos": "42% 22%"
+        }
+      },
+      "q1": {
+        "bubble": "\"Follow-up has to live where Marco actually is.\"",
+        "family": true,
+        "familyText": "Marco Chen, 16 · asthma + regular vaping · in school all day, peer-influenced, parents recently aware and working full-time.",
+        "ctx": "Hub barrier profile — ON: adolescent access (in school all day), parental time, peer-norm influence. Equity Status flags teens as lost to clinic-based follow-up.",
+        "q": "Which partner can deliver real follow-up for Marco?",
+        "choices": [
+          {
+            "text": "The school-based health center / school nurse — controls daily access to Marco, is a trusted neutral adult, and can monitor his asthma and run vaping-cessation support on site.",
+            "correct": true,
+            "feedback": "Right. Follow-up has to be where the teen already is, every day. The school nurse has the access and trust a clinic can't match for an adolescent, and can address the peer context too.",
+            "takeaway": "For follow-up, the partner with daily access to the population usually beats the partner with the best specialty care."
+          },
+          {
+            "text": "The pulmonology clinic — they have the specialist expertise.",
+            "correct": false,
+            "feedback": "Expertise isn't the gap; access is. Marco won't reliably get to a clinic, so it delivers episodic care, not follow-up. The break is the daily in-between."
+          },
+          {
+            "text": "A telehealth app his parents are asked to manage.",
+            "correct": false,
+            "feedback": "That stacks a digital barrier and a parental-time barrier and ignores the school/peer setting where the behavior lives. Not matched to the profile."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Connect the one ER visit to ongoing support.\"",
+        "family": true,
+        "familyText": "Marco is more honest with a trusted adult who isn't lecturing him — and the behavior lives among his peers at school.",
+        "ctx": "You've named the school-based health center. Now connect the one-time ER visit to ongoing follow-up in his real setting.",
+        "q": "Which move builds the clinical–community link for Marco?",
+        "choices": [
+          {
+            "text": "With consent, the ER/pulmonologist sends Marco's asthma action plan to the school nurse, who monitors inhaler use and enrolls him in a peer-based vaping-cessation group at school.",
+            "correct": true,
+            "feedback": "Yes. The clinical visit now links to a community setting that sees him daily, and the peer-based group meets the behavior where it actually operates. A one-time visit becomes continuous follow-up.",
+            "takeaway": "A clinical–community link routes the clinical plan to whoever has daily contact — and uses the population's real context (peers) to make it stick."
+          },
+          {
+            "text": "Send Marco home with the paper action plan to give his parents.",
+            "correct": false,
+            "consequence": "The plan never leaves his bag, vaping continues with his friends, and Marco is back in the ER by next term. No link, no follow-up.",
+            "feedback": "Paper-in-a-backpack is where follow-up goes to die for a teen. No daily monitoring, no peer support, no link — the pathway breaks at discharge."
+          },
+          {
+            "text": "Book a clinic recheck in three months and do nothing until then.",
+            "correct": false,
+            "feedback": "Three months of nothing isn't follow-up. The link has to carry care into the daily setting between visits."
+          }
+        ]
+      }
+    },
+    {
+      "key": "alicia",
+      "name": "Alicia",
+      "initials": "AR",
+      "creds": "PTA",
+      "color": "#F79646",
+      "bgDark": "#261808",
+      "phColor": "#2e1800",
+      "role": "Carmen's environment · Break point",
+      "ariaName": "Alicia, PTA",
+      "portrait": "assets/alicia.png",
+      "audio": "assets/audio/alicia_m2.mp3",
+      "lesson": "The structural break — when the Hub flags the environment, you need a community/policy partner, chosen by the barrier, not the name.",
+      "intro": {
+        "role": "Physical Therapist Assistant",
+        "text": "Carmen did her PT. The clinical pathway worked — right up until she went home. Third-floor walk-up, no safe sidewalks, no transport to a class. The break isn't in her body or her clinic; it's structural. And this is exactly what the Hub was telling us: the barrier profile points at the environment, and a clinic-only fix makes the gap worse, not better.",
+        "transcript": "Carmen did her PT. The clinical pathway worked — right up until she went home. Third-floor walk-up, no safe sidewalks, no transport to a class. The break isn't in her body or her clinic; it's structural. And this is exactly what the Hub was telling us: the barrier profile points at the environment, and a clinic-only fix makes the gap worse, not better."
+      },
+      "scenes": {
+        "q1": {
+          "img": "assets/scenes/alicia_q2.jpeg",
+          "pos": "50% 30%"
+        },
+        "q2": {
+          "img": "assets/scenes/alicia_q2.jpeg",
+          "pos": "50% 30%"
+        }
+      },
+      "q1": {
+        "bubble": "\"The break isn't in her body or her clinic — it's structural.\"",
+        "family": true,
+        "familyText": "Same family, two zip codes — Riverside Flats (limited resources) vs Maple Heights (greater access). Same genetic fall risk, different outcomes.",
+        "ctx": "Hub output — Equity Status: Riverside Flats residents left behind on environmental access. Tradeoff: a clinic-only approach improves clinic-attached patients while widening the neighborhood gap.",
+        "q": "The Hub flagged an environmental break. Which partner addresses it?",
+        "choices": [
+          {
+            "text": "Area Agency on Aging + a housing partner — controls home-safety modifications, transportation vouchers, and accessible community exercise; reduces the environmental barrier the Hub flagged.",
+            "correct": true,
+            "feedback": "Right. The break is structural, so the partner has to operate at the community/policy level — handrails and ramps, rides, a safe place to move. That's a partner chosen because of the barrier profile, not despite it.",
+            "takeaway": "When the Hub flags an environmental/structural break, you need a community- or policy-level partner — more individual services won't close it."
+          },
+          {
+            "text": "Add more PT sessions at the clinic.",
+            "correct": false,
+            "feedback": "Carmen already succeeded clinically — more individual sessions don't touch the third-floor walk-up or the missing sidewalks. This is the clinic-only move the Tradeoff output warned widens the gap."
+          },
+          {
+            "text": "A gym membership across town.",
+            "correct": false,
+            "feedback": "Transportation is part of the barrier, so a resource she can't reach isn't a solution. It also ignores the Hub's equity finding entirely."
+          }
+        ]
+      },
+      "q2": {
+        "bubble": "\"Choose the partner by the barrier — that's the rationale.\"",
+        "family": true,
+        "familyText": "Carmen lives in a third-floor walk-up in Riverside Flats with limited transportation.",
+        "ctx": "This is the exact reasoning the assignment's Hub Barrier & Partner Check asks you to write. What makes a partner choice defensible?",
+        "q": "Which is the correct way to justify a partner from the Hub output?",
+        "choices": [
+          {
+            "text": "\"Equity Status showed Riverside Flats left behind on access and the Tradeoff showed clinic-only widens the gap — so the pathway needs a community-level partner (AAA + housing) that reduces the environmental barrier.\"",
+            "correct": true,
+            "feedback": "Yes. You named the Hub output, identified who's being left out, and chose the partner by the barrier it reduces. That's exactly the construct-to-partner reasoning the Mobilize draft is graded on.",
+            "takeaway": "A defensible partner ties a named Hub barrier to a specific role that reduces it — barrier → partner, every time."
+          },
+          {
+            "text": "\"We chose the senior center because it's well known and easy to contact.\"",
+            "correct": false,
+            "feedback": "Convenience and name recognition aren't a rationale — and the assignment explicitly forbids generic partners. The choice must trace back to the barrier profile."
+          },
+          {
+            "text": "\"We added another individual exercise program and didn't reference the equity output.\"",
+            "correct": false,
+            "feedback": "Ignoring the Hub's equity finding and staying at the individual level is the mistake the whole module is built to prevent."
+          }
+        ]
+      }
+    }
+  ]
+};
+
+/* ============================ ENGINE (do not edit per-table) ================ */
+// Derive the engine's lookup tables from TABLE. Adding/reordering members in
+// TABLE.team automatically updates the hub, progress count, and debrief.
+const TEAM = TABLE.team;
+const TEAM_KEYS = TEAM.map(t=>t.key);
+const byKey = {}; TEAM.forEach(t=>byKey[t.key]=t);
+
+const PORTRAITS = { avery:TABLE.avery.portrait };
+TEAM.forEach(t=>PORTRAITS[t.key]=t.portrait);
+
+const SCENE_IMG = 'assets/conferenceroom.jpg';
+const SCENE_ASSETS = {};
+TEAM.forEach(t=>SCENE_ASSETS[t.key]=t.scenes||{});
+function sceneFor(name,qNum){
+  const e=(SCENE_ASSETS[name]||{})['q'+qNum];
+  if(e&&e.video)return{video:e.video,pos:e.pos};
+  if(typeof e==='string')return{img:e};
+  if(e&&e.img)return{img:e.img,pos:e.pos};
+  return{img:SCENE_IMG};
+}
+const SCENE_BLOB = {};
+
+const AUDIO_URLS = { avery_intro:TABLE.avery.intro.audio, avery_exit:TABLE.avery.debrief.audio };
+TEAM.forEach(t=>AUDIO_URLS[t.key]=t.audio);
+
+const TRANSCRIPTS = { avery_intro:TABLE.avery.intro.transcript, avery_exit:TABLE.avery.debrief.transcript };
+TEAM.forEach(t=>TRANSCRIPTS[t.key]=(t.intro&&t.intro.transcript)||t.intro.text);
+
+const CHARS = {};
+TEAM.forEach(t=>{ CHARS[t.key]={color:t.color,bgDark:t.bgDark,audioKey:t.key,intro:t.intro,q1:t.q1,q2:t.q2}; });
+
+const TOTAL = TEAM_KEYS.length;
+
+const audios={};
+let currentChar=null, completed={}, q1Wrong=0, q2Wrong=0;
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// Compute accent shades from a single hex so the whole UI re-themes per module.
+function applyTheme(hex){
+  function h2(x){return parseInt(x,16);}
+  const c=hex.replace('#','');
+  const r=h2(c.slice(0,2)),g=h2(c.slice(2,4)),b=h2(c.slice(4,6));
+  const mix=(t,a)=>[Math.round(r+(t[0]-r)*a),Math.round(g+(t[1]-g)*a),Math.round(b+(t[2]-b)*a)];
+  const rs=document.documentElement.style;
+  rs.setProperty('--accent',hex);
+  rs.setProperty('--accent-hover','rgb('+mix([0,0,0],.2).join(',')+')');
+  rs.setProperty('--accent-focus','rgb('+mix([255,255,255],.4).join(',')+')');
+  rs.setProperty('--accent-soft','rgba('+r+','+g+','+b+',.07)');
+  rs.setProperty('--accent-soft2','rgba('+r+','+g+','+b+',.13)');
+}
+
+// Populate the static screens (intro / hub cards / debrief) from TABLE.
+function boot(){
+  applyTheme(TABLE.theme.accent);
+  document.title = TABLE.meta.title + ' · ' + TABLE.meta.moduleLabel;
+
+  // intro
+  document.getElementById('intro-avery-photo').src=TABLE.avery.portrait;
+  document.getElementById('intro-avery-label').textContent=TABLE.avery.label;
+  document.getElementById('intro-title').textContent=TABLE.meta.title;
+  document.getElementById('intro-sub').textContent=TABLE.meta.moduleLabel;
+  document.getElementById('tr-intro').textContent=TABLE.avery.intro.transcript;
+  document.getElementById('intro-quote').textContent=TABLE.avery.intro.quote;
+  document.getElementById('intro-body').innerHTML=TABLE.avery.intro.bodyHtml;
+
+  // hub
+  document.getElementById('hub-title').textContent=TABLE.meta.hubTitle;
+  document.getElementById('hub-sub').textContent=TABLE.meta.hubSub;
+  document.getElementById('char-grid').innerHTML=TEAM.map(t=>(
+    '<div class="char-card" id="card-'+t.key+'" style="background:'+t.bgDark+';border-color:'+t.color+'" '+
+    'onclick="startChar(\''+t.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \')startChar(\''+t.key+'\')" '+
+    'tabindex="0" role="listitem button" aria-label="'+esc(t.ariaName||t.name)+'">'+
+    '<img class="char-avatar" src="'+t.portrait+'" alt="'+esc(t.name)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="char-avatar-ph" style="background:'+t.color+';color:'+(t.phColor||'#fff')+';display:none">'+esc(t.initials||'')+'</div>'+
+    '<div class="char-name">'+esc(t.name)+'</div><div class="char-role">'+esc(t.role)+'</div>'+
+    '</div>'
+  )).join('');
+
+  // family / consequence flag labels (canon, constant)
+  document.querySelectorAll('.family-tag').forEach(e=>e.textContent=TABLE.meta.familyTag);
+  document.querySelectorAll('.consequence-tag').forEach(e=>e.textContent='CONSEQUENCE · '+TABLE.meta.familyTag);
+
+  // debrief
+  document.getElementById('exit-title').textContent=TABLE.avery.debrief.title;
+  document.getElementById('exit-sub').textContent=TABLE.avery.debrief.sub;
+  document.getElementById('tr-exit').textContent=TABLE.avery.debrief.transcript;
+  document.getElementById('exit-lessons-intro').textContent=TABLE.avery.debrief.lessonsIntro;
+  document.getElementById('exit-lessons').innerHTML=TEAM.map(t=>(
+    '<div style="display:flex;gap:.65rem;align-items:flex-start">'+
+    '<span style="width:9px;height:9px;border-radius:50%;background:'+t.color+';margin-top:.4rem;flex-shrink:0"></span>'+
+    '<div style="color:#cdd8e6;font-size:.8rem;line-height:1.55"><strong style="color:#fff">'+esc(t.name)+' ('+esc(t.creds)+'):</strong> '+esc(t.lesson)+'</div></div>'
+  )).join('');
+  document.getElementById('exit-body').innerHTML=TABLE.avery.debrief.bodyHtml;
+  document.getElementById('exit-completion').textContent=TABLE.meta.completion;
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+}
+
+function getAudio(key){
+  if(!audios[key]){
+    const url=key==='char_intro'?AUDIO_URLS[currentChar]:AUDIO_URLS[key];
+    if(!url)return null;
+    const a=new Audio();
+    audios[key]=a;
+    a.addEventListener('timeupdate',()=>updateAudioProgress(key,a));
+    a.addEventListener('ended',()=>{
+      const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+      if(btn)btn.textContent='▶';
+    });
+    a.addEventListener('error',()=>showAudioError(key));
+    a.src=url;
+  }
+  return audios[key];
+}
+
+function showAudioError(key){
+  const errId=key==='char_intro'?'err-char_intro':`err-${key}`;
+  const errEl=document.getElementById(errId);
+  if(errEl)errEl.style.display='block';
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn){btn.textContent='✕';btn.disabled=true;}
+}
+
+function resetPlayButton(key){
+  const btn=key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+  if(btn)btn.textContent='▶';
+}
+
+let activeKey=null;
+
+function btnFor(key){
+  return key==='char_intro'?document.getElementById('ci-play-btn'):document.getElementById('btn-'+key);
+}
+
+function playKey(key){
+  stopAllAudio('');
+  const a=getAudio(key);if(!a)return;
+  activeKey=key;
+  a.play().then(()=>{
+    if(activeKey!==key){a.pause();return;}
+    const b=btnFor(key);if(b)b.textContent='⏸';
+  }).catch(()=>{
+    if(activeKey===key)resetPlayButton(key);
+  });
+}
+
+function toggleAudio(key){
+  const a=getAudio(key);if(!a)return;
+  if(a.paused){
+    playKey(key);
+  } else {
+    a.pause();activeKey=null;
+    const b=btnFor(key);if(b)b.textContent='▶';
+  }
+}
+
+function stopAllAudio(except){
+  if(activeKey&&activeKey!==except)activeKey=null;
+  Object.keys(audios).forEach(k=>{
+    if(k!==except&&audios[k]&&!audios[k].paused){
+      audios[k].pause();
+      const btn=btnFor(k);
+      if(btn)btn.textContent='▶';
+    }
+  });
+}
+
+function updateAudioProgress(key,a){
+  if(!a.duration)return;
+  const pct=a.currentTime/a.duration*100;
+  const fillId=key==='char_intro'?'fill-char_intro':'fill-'+key;
+  const timeId=key==='char_intro'?'time-char_intro':'time-'+key;
+  const fill=document.getElementById(fillId);
+  const time=document.getElementById(timeId);
+  if(fill)fill.style.width=pct+'%';
+  if(time){const m=Math.floor(a.currentTime/60),s=Math.floor(a.currentTime%60).toString().padStart(2,'0');time.textContent=m+':'+s;}
+}
+
+function seekAudio(e,key){
+  const a=getAudio(key);if(!a||!a.duration)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  a.currentTime=Math.max(0,Math.min(1,pct))*a.duration;
+}
+
+function toggleTranscript(id){
+  const el=document.getElementById(id);
+  const btn=document.querySelector(`[aria-controls="${id}"]`);
+  if(!el)return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(btn){btn.textContent=open?'Show transcript':'Hide transcript';btn.setAttribute('aria-expanded',!open);}
+}
+
+function announce(msg){
+  const r=document.getElementById('live-region');
+  if(r){r.textContent='';setTimeout(()=>r.textContent=msg,50);}
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el){el.classList.add('active');const first=el.querySelector('button,[tabindex="0"]');if(first)setTimeout(()=>first.focus(),100);}
+}
+
+function showHub(){
+  stopAllAudio('');
+  updateHub();
+  show('screen-hub');
+  if(TEAM_KEYS.every(c=>completed[c])){setTimeout(()=>{show('screen-exit');announce('Simulation complete. All perspectives reviewed.');},400);}
+}
+
+function updateHub(){
+  const done=Object.keys(completed).length;
+  document.getElementById('prog').style.width=(done/TOTAL*100)+'%';
+  document.getElementById('prog-label').textContent=done+' of '+TOTAL+' perspectives completed';
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(!card)return;
+    if(completed[c]){
+      card.classList.add('done');
+      card.setAttribute('tabindex','-1');
+      card.setAttribute('aria-disabled','true');
+      if(!card.querySelector('.done-badge')){const b=document.createElement('div');b.className='done-badge';b.textContent='✓';b.setAttribute('aria-hidden','true');card.appendChild(b);}
+    }
+  });
+}
+
+function confirmReset(){ resetSim(); }
+
+function resetSim(){
+  completed={};q1Wrong=0;q2Wrong=0;activeKey=null;
+  Object.keys(audios).forEach(k=>{audios[k].pause();audios[k].currentTime=0;const b=btnFor(k);if(b)b.textContent='▶';});
+  TEAM_KEYS.forEach(c=>{
+    const card=document.getElementById('card-'+c);
+    if(card){card.classList.remove('done');card.setAttribute('tabindex','0');card.removeAttribute('aria-disabled');const b=card.querySelector('.done-badge');if(b)b.remove();}
+  });
+  document.getElementById('prog').style.width='0%';
+  document.getElementById('prog-label').textContent='0 of '+TOTAL+' perspectives completed';
+  show('screen-intro');
+  announce('Simulation reset. Starting over.');
+}
+
+function startChar(name){
+  if(completed[name])return;
+  currentChar=name;q1Wrong=0;q2Wrong=0;
+  if(audios['char_intro']){audios['char_intro'].pause();audios['char_intro'].currentTime=0;delete audios['char_intro'];}
+  const d=CHARS[name];
+  const panel=document.getElementById('ci-color-panel');
+  panel.style.background=d.bgDark;
+  const portrait=document.getElementById('ci-portrait');
+  portrait.src=PORTRAITS[name];portrait.alt=name.charAt(0).toUpperCase()+name.slice(1);
+  portrait.style.display='block';
+  document.getElementById('ci-portrait-ph').style.display='none';
+  document.getElementById('ci-portrait-ph').textContent=(byKey[name].initials||name.slice(0,2).toUpperCase());
+  document.getElementById('ci-name-large').textContent=byKey[name].name;
+  document.getElementById('ci-role-large').textContent=d.intro.role;
+  document.getElementById('ci-bar').style.borderColor=d.color;
+  document.getElementById('ci-play-btn').style.background=d.color;
+  document.getElementById('fill-char_intro').style.background=d.color;
+  document.getElementById('ci-play-btn').textContent='▶';
+  document.getElementById('ci-play-btn').disabled=false;
+  document.getElementById('fill-char_intro').style.width='0%';
+  document.getElementById('time-char_intro').textContent='0:00';
+  document.getElementById('err-char_intro').style.display='none';
+  document.getElementById('ci-role-label').textContent=d.intro.role;
+  document.getElementById('ci-intro-text').textContent=d.intro.text;
+  document.getElementById('tr-char').textContent=TRANSCRIPTS[name]||'';
+  document.getElementById('tr-char').style.display='none';
+  const tcBtn=document.getElementById('ci-transcript-btn');
+  if(tcBtn){tcBtn.textContent='Show transcript';tcBtn.setAttribute('aria-expanded','false');}
+  show('screen-char-intro');
+  announce(byKey[name].name+' — '+d.intro.role);
+}
+
+function goToQ1(){stopAllAudio('');renderQ1();show('screen-q1');announce('Question 1 of 2');}
+
+function playSceneVideo(vidEl,imgEl,src){
+  if(!vidEl)return;
+  vidEl.muted=true;vidEl.loop=true;vidEl.playsInline=true;
+  const fail=()=>{vidEl.style.display='none';if(imgEl){imgEl.src=SCENE_IMG;imgEl.style.display='block';}};
+  vidEl.onerror=fail;
+  vidEl.style.display='block';
+  const go=()=>vidEl.play().catch(()=>{});
+  if(SCENE_BLOB[src]){vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();return;}
+  fetch(src).then(r=>{if(!r.ok)throw 0;return r.blob();}).then(b=>{
+    if(!SCENE_BLOB[src])SCENE_BLOB[src]=URL.createObjectURL(b);
+    vidEl.src=SCENE_BLOB[src];vidEl.dataset.loadedSrc=src;go();
+  }).catch(fail);
+}
+
+function setSceneImg(qNum,name,isColor){
+  const sceneEl=document.getElementById(`q${qNum}-scene-img`);
+  const vidEl=document.getElementById(`q${qNum}-scene-vid`);
+  const colorEl=document.getElementById(`q${qNum}-color-panel`);
+  const portEl=document.getElementById(`q${qNum}-portrait`);
+  const nameEl=document.getElementById(`q${qNum}-char-name`);
+  const d=CHARS[name];
+  const sc=isColor?{}:sceneFor(name,qNum);
+  const hasVid=!!sc.video;
+  const hasImg=!!sc.img;
+  if(hasVid){
+    playSceneVideo(vidEl,sceneEl,sc.video);
+    sceneEl.style.display='none';
+    if(colorEl)colorEl.style.display='none';
+  } else if(hasImg){
+    sceneEl.src=sc.img;sceneEl.style.display='block';sceneEl.style.objectPosition=sc.pos||'center';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl)colorEl.style.display='none';
+  } else {
+    sceneEl.style.display='none';
+    if(vidEl){vidEl.pause();vidEl.style.display='none';}
+    if(colorEl){colorEl.style.display='flex';colorEl.style.background=d.bgDark;}
+    if(portEl){portEl.src=PORTRAITS[name];portEl.alt=name;}
+    if(nameEl)nameEl.textContent=byKey[name].name;
+  }
+  const fbSceneEl=document.getElementById(`fb${qNum}-scene-img`);
+  const fbVidEl=document.getElementById(`fb${qNum}-scene-vid`);
+  const fbColorEl=document.getElementById(`fb${qNum}-color`);
+  const fbPortEl=document.getElementById(`fb${qNum}-portrait`);
+  if(hasVid){
+    playSceneVideo(fbVidEl,fbSceneEl,sc.video);
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else if(hasImg){
+    if(fbSceneEl){fbSceneEl.src=sc.img;fbSceneEl.style.display='block';fbSceneEl.style.objectPosition=sc.pos||'center';}
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl)fbColorEl.style.display='none';
+  } else {
+    if(fbSceneEl)fbSceneEl.style.display='none';
+    if(fbVidEl){fbVidEl.pause();fbVidEl.style.display='none';}
+    if(fbColorEl){fbColorEl.style.display='flex';fbColorEl.style.background=d.bgDark;}
+    if(fbPortEl){fbPortEl.src=PORTRAITS[name];fbPortEl.alt=name;}
+  }
+}
+
+function renderQ1(){
+  const d=CHARS[currentChar].q1;
+  setSceneImg(1,currentChar,false);
+  document.getElementById('q1-bubble').textContent=d.bubble;
+  document.getElementById('q1-ctx').textContent=d.ctx;
+  document.getElementById('q1-text').textContent=d.q;
+  const fam=document.getElementById('q1-family');
+  if(d.family){fam.style.display='block';document.getElementById('q1-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q1-choices',d.choices,handleQ1);
+}
+
+function renderQ2(){
+  const d=CHARS[currentChar].q2;
+  setSceneImg(2,currentChar,false);
+  document.getElementById('q2-bubble').textContent=d.bubble;
+  document.getElementById('q2-ctx').textContent=d.ctx;
+  document.getElementById('q2-text').textContent=d.q;
+  const fam=document.getElementById('q2-family');
+  if(d.family){fam.style.display='block';document.getElementById('q2-family-text').textContent=d.familyText;}
+  else fam.style.display='none';
+  renderChoices('q2-choices',d.choices,handleQ2);
+}
+
+function renderChoices(id,choices,handler){
+  const el=document.getElementById(id);el.innerHTML='';
+  choices.forEach((ch,i)=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.setAttribute('aria-label','Option '+(i+1)+': '+ch.text);
+    btn.innerHTML='<div class="cbullet" aria-hidden="true"></div><span class="ctext">'+esc(ch.text)+'</span>';
+    btn.onclick=()=>{
+      [...el.querySelectorAll('.choice-btn')].forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      setTimeout(()=>handler(ch),220);
+    };
+    el.appendChild(btn);
+  });
+}
+
+function handleQ1(ch){
+  const chosen=document.getElementById('fb1-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb1-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb1-consequence');
+  const averyEl=document.getElementById('fb1-avery');
+  const takeEl=document.getElementById('fb1-takeaway');
+  const actions=document.getElementById('fb1-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    addBtn(actions,'Continue to Question 2 →',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback);
+  } else {
+    q1Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb1-consequence-text').textContent=ch.consequence;}
+    if(q1Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb1-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ1();show('screen-q1');});
+    addBtn(actions,'Skip to Question 2',()=>{renderQ2();show('screen-q2');announce('Question 2 of 2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb1');
+}
+
+function handleQ2(ch){
+  const chosen=document.getElementById('fb2-chosen');
+  chosen.textContent=ch.text;
+  chosen.classList.toggle('correct',!!ch.correct);
+  chosen.classList.toggle('wrong',!ch.correct);
+  document.getElementById('fb2-text').textContent=ch.feedback;
+  const conseq=document.getElementById('fb2-consequence');
+  const averyEl=document.getElementById('fb2-avery');
+  const takeEl=document.getElementById('fb2-takeaway');
+  const actions=document.getElementById('fb2-actions');
+  conseq.style.display='none';averyEl.style.display='none';takeEl.style.display='none';actions.innerHTML='';
+  if(ch.correct){
+    takeEl.textContent=ch.takeaway||'';takeEl.style.display='block';
+    completed[currentChar]=true;updateHub();
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Correct. '+ch.feedback+' Perspective complete.');
+  } else {
+    q2Wrong++;
+    if(ch.consequence){conseq.style.display='block';document.getElementById('fb2-consequence-text').textContent=ch.consequence;}
+    if(q2Wrong>=2&&ch.avery){averyEl.style.display='block';document.getElementById('fb2-avery-text').textContent=ch.avery;}
+    addBtn(actions,'Try again',()=>{renderQ2();show('screen-q2');});
+    addBtn(actions,'Return to team hub',showHub);
+    announce('Not quite. '+ch.feedback);
+  }
+  show('screen-fb2');
+}
+
+function addBtn(container,label,fn){
+  const btn=document.createElement('button');
+  btn.className='fb-btn';
+  btn.innerHTML='<div class="fbullet" aria-hidden="true"></div><span class="fb-btn-text">'+esc(label)+'</span>';
+  btn.onclick=fn;container.appendChild(btn);
+}
+
+boot();   // populate screens from TABLE
+// No autoplay on load: narration starts only when the learner presses play.
+</script>
+</body>
+</html>
